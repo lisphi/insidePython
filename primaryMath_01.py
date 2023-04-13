@@ -2,6 +2,7 @@
 
 import random
 import tkinter as tk
+from tkinter import messagebox
 
 def generate_questions():
     question_list = []
@@ -36,6 +37,15 @@ def show_answers():
                 answer = eval(question.rstrip(" = "))
                 answer_labels[i][j].config(text=f"{answer:2}", fg="red")
 
+def preview_questions():
+    questions = generate_questions()
+    preview_text = ""
+    for row in questions:
+        for question in row:
+            preview_text += f"{question} = __\t"
+        preview_text += "\n"
+    messagebox.showinfo("预览题目", preview_text)
+
 root = tk.Tk()
 root.title("小学生算术题")
 
@@ -60,5 +70,9 @@ generate_btn.grid(row=0, column=0, padx=10)
 
 answer_btn = tk.Button(btn_frame, text="答案", command=show_answers)
 answer_btn.grid(row=0, column=1, padx=10)
+
+preview_btn = tk.Button(btn_frame, text="预览", command=preview_questions)
+preview_btn.grid(row=0, column=2, padx=10)
+
 
 root.mainloop()

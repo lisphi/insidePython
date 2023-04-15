@@ -98,6 +98,6 @@ answer_btn = tk.Button(btn_frame, text="答案", command=show_answers)
 answer_btn.grid(row=0, column=4, padx=10)
 
 print_btn = tk.Button(btn_frame, text="打印", command=print_questions)
-print_btn.grid(row=0, column=4, padx=10)
+print_btn.grid(row=0, column=5, padx=10)
 
 root.mainloop()

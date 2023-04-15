@@ -14,6 +14,8 @@ def generate_questions():
                 num1 = random.randint(1, 99)
                 num2 = random.randint(1, 99)
                 operation = random.choice(["+", "-"])
+                if is_easy(num1, num2, operation): 
+                    continue
                 question = f"{num1:2}{operation}{num2:2}"
                 answer = eval(question)
                 if 0 <= answer <= 100:
@@ -21,6 +23,10 @@ def generate_questions():
                     row.append(question)
         question_list.append(row)
     return question_list
+
+def is_easy(num1, num2, operation):
+    return "+" == operation and (num1 % 10 + num2 % 10 < 10) or "-" == operation and (num1 % 10 >= num2 % 10) 
+
 
 def show_questions():
     questions = generate_questions()

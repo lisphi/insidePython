@@ -14,7 +14,7 @@ def generate_questions():
                 num1 = random.randint(1, 99)
                 num2 = random.randint(1, 99)
                 operation = random.choice(["+", "-"])
-                question = f"{num1:2} {operation} {num2:2}"
+                question = f"{num1:2}{operation}{num2:2}"
                 answer = eval(question)
                 if 0 <= answer <= 100:
                     valid_question = True
@@ -26,7 +26,7 @@ def show_questions():
     questions = generate_questions()
     for i, row in enumerate(questions):
         for j, question in enumerate(row):
-            question_labels[i][j].config(text=f"{question} = ", fg="black")
+            question_labels[i][j].config(text=f"{question}=", fg="black")
             answer_labels[i][j].config(text="")
 
 def show_answers():
@@ -34,17 +34,8 @@ def show_answers():
         for j, question_label in enumerate(row):
             question = question_label.cget("text")
             if question:
-                answer = eval(question.rstrip(" = "))
+                answer = eval(question.rstrip("="))
                 answer_labels[i][j].config(text=f"{answer:2}", fg="red")
-
-def preview_questions():
-    questions = generate_questions()
-    preview_text = ""
-    for row in questions:
-        for question in row:
-            preview_text += f"{question} = __\t"
-        preview_text += "\n"
-    messagebox.showinfo("预览题目", preview_text)
 
 root = tk.Tk()
 root.title("小学生算术题")
@@ -52,7 +43,7 @@ root.title("小学生算术题")
 frame = tk.Frame(root, padx=10, pady=10)
 frame.grid(row=0, column=0, sticky=(tk.W, tk.E, tk.N, tk.S))
 
-question_font = ("Consolas", 12)
+question_font = ("Aril", 24)
 
 question_labels = [[tk.Label(frame, font=question_font, width=10, anchor='e') for _ in range(4)] for _ in range(10)]
 answer_labels = [[tk.Label(frame, font=question_font, width=4, anchor='w') for _ in range(4)] for _ in range(10)]
@@ -70,9 +61,5 @@ generate_btn.grid(row=0, column=0, padx=10)
 
 answer_btn = tk.Button(btn_frame, text="答案", command=show_answers)
 answer_btn.grid(row=0, column=1, padx=10)
-
-preview_btn = tk.Button(btn_frame, text="预览", command=preview_questions)
-preview_btn.grid(row=0, column=2, padx=10)
-
 
 root.mainloop()

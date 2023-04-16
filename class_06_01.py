@@ -27,7 +27,7 @@ def parse(text):
     return sorted_word_cnt
 
 def main():
-    with open(os.path.join(os.getcwd(), 'class_06_in.txt'), 'r') as fin:
+    with open(os.path.join(os.getcwd(), 'class_06_01_in.txt'), 'r') as fin:
         text = fin.read()
 
     for word, freq in parse(text):

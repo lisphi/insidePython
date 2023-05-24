@@ -14,6 +14,7 @@ class Crawler:
         self.root_path = root_path
         self.page_size = page_size
         self.results = []
+        self.max_retries = 3
 
     def crawl(self):
         self.crawl_path(self.root_path, 1)
@@ -21,7 +22,19 @@ class Crawler:
     def crawl_path(self, path, page_index):
         time.sleep(random.uniform(0.5, 2.0))
         url = self.url_format.format(path=quote(path), page_size=self.page_size, page_index=page_index)
-        response = requests.get(url, cookies=self.cookies)
+
+        for i in range(self.max_retries):
+            try:
+                response = requests.get(url, cookies=self.cookies)
+                break
+            except Exception as e:
+                if i == self.max_retries - 1:
+                    print(url)
+                    raise e
+                else:
+                    time.sleep(2)
+                    continue
+
         if response.status_code == 200:
             json_data = json.loads(response.text)
             if json_data['errno'] == 0:

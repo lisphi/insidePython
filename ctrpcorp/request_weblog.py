@@ -88,12 +88,12 @@ def main():
     threads = []
     thread_count = 24
     start_time = datetime.datetime(2023, 5, 23)
-    end_time = start_time + datetime.timedelta(days=2)
+    end_time = start_time + datetime.timedelta(days=1)
     delta_seconds = int((end_time - start_time).total_seconds() / thread_count)
 
     for i in range(thread_count):
         current_start_time = start_time + datetime.timedelta(seconds = i * delta_seconds)
-        current_end_time = current_start_time + datetime.timedelta(seconds = (i + 1) * delta_seconds)
+        current_end_time = start_time + datetime.timedelta(seconds = (i + 1) * delta_seconds)
         thread = CrawlerThread(results_lock, results, cookies, '100017817', 'endHangEvent', current_start_time, current_end_time)
         thread.start()
         threads.append(thread)

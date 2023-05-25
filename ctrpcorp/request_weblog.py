@@ -20,7 +20,7 @@ AND (cs_uri_stem like '%{operation}%') AND ((1=1)) ORDER BY timestamp desc LIMIT
         self.app_id = app_id
         self.operation = operation
         self.max_retries = 3
-        self.step_in_second = 3 * 60 # 五分钟
+        self.step_in_second = 5 * 60 # 五分钟
         
     def crawl(self, results_lock, output_results, start_time, end_time):
         # result_file = self.result_file_format.format(date=datetime.datetime.strftime(start_time, "%Y%m%d%H%M"))
@@ -35,9 +35,10 @@ AND (cs_uri_stem like '%{operation}%') AND ((1=1)) ORDER BY timestamp desc LIMIT
             current_start_timestamp = int((current_start_time - datetime.datetime(1970, 1, 1)).total_seconds())
             current_end_timestamp = int((current_end_time - datetime.datetime(1970, 1, 1)).total_seconds())
             query = self.query_template.format(start=current_start_timestamp, end=current_end_timestamp, app_id=self.app_id, operation=self.operation)
+
             for i in range(self.max_retries):
                 try:
-                    response = requests.post(self.url, data=query, cookies=cookies)
+                    response = requests.post(self.url, data=query, cookies=self.cookies)
                     break
                 except Exception as e:
                     if i == self.max_retries - 1:

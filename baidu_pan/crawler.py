@@ -8,8 +8,8 @@ import random
 
 class Crawler:
     def __init__(self, cookies, root_path, page_size=100):
-        self.result_file = 'baidu_pan.csv'
-        self.url_format = 'https://pan.baidu.com/api/list?clienttype=0&app_id=250528&web=1&dp-logid=50286600892695880039&order=time&desc=1&dir={path}&num={page_size}&page={page_index}'
+        self.result_file = 'baidu_pan/baidu_pan.csv'
+        self.url_format = 'https://pan.baidu.com/api/list?clienttype=0&app_id=250528&web=1&dp-logid=60000600932653500048&order=time&desc=1&dir={path}&num={page_size}&page={page_index}'
         self.cookies = cookies
         self.root_path = root_path
         self.page_size = page_size
@@ -59,12 +59,10 @@ class Crawler:
                 for dir_path in dir_pathes:
                     self.crawl_path(dir_path, 1)
 
+
 cookies = { 
-    'BDUSS': 'o1LWNCQVBtN2FCQWNmY1FwYjVEeWxWSkhwd0x6dUtzNEtqUjNYUWFsNlFhbDVoSVFBQUFBJCQAAAAAAAAAAAEAAAAQfMcAbGlzcGhpAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAJDdNmGQ3TZhNk' ,
-    'STOKEN': '9a4bdd9b58b5933ec82e1b22769aa62cedbbb8f28e0733108642b2024789e6f2' }
-root_path = '/来自：Redmi K30 Pro'
+    'BDUSS': 'JoeHl1bnpWSDJtSE1IVHdhdXNwT3lrSHVkSy1KdmtBblFqcng4RGI3MDlSWDFpRVFBQUFBJCQAAAAAAAAAAAEAAAAQfMcAbGlzcGhpAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAD24VWI9uFVibm' ,
+    'STOKEN': 'a9367563b4ab183989cb873cf94e06a592b1dc4dd95d8c1aec674612dc42744c' }
+root_path = '/00极客时间'
 crawler = Crawler(cookies, root_path)
 crawler.crawl()
-
-
- 

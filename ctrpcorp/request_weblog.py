@@ -5,7 +5,7 @@ import datetime
 import time
 from dotenv import load_dotenv
 import os
-import threading
+import concurrent.futures
 
 
 class Crawler:
@@ -20,10 +20,9 @@ AND (cs_uri_stem like '%{operation}%') AND ((1=1)) ORDER BY timestamp desc LIMIT
         self.app_id = app_id
         self.operation = operation
         self.max_retries = 3
-        self.step_in_second = 5 * 60 # 五分钟
+        self.step_in_second = 1 * 60
         
-    def crawl(self, results_lock, output_results, start_time, end_time):
-        # result_file = self.result_file_format.format(date=datetime.datetime.strftime(start_time, "%Y%m%d%H%M"))
+    def crawl(self, start_time, end_time):
         total_step = int((end_time - start_time).total_seconds() / self.step_in_second)
         results=[]
         for i in range(total_step):
@@ -61,20 +60,11 @@ AND (cs_uri_stem like '%{operation}%') AND ((1=1)) ORDER BY timestamp desc LIMIT
                 print(response)
             time.sleep(0.005)
 
-        with results_lock:
-            output_results.extend(results)
+        return results;
 
-class CrawlerThread(threading.Thread):
-    def __init__(self, results_lock, results, cookies, app_id, operation, start_time, end_time):
-        threading.Thread.__init__(self)
-        self.crawler = Crawler(cookies, app_id, operation)
-        self.results_lock = results_lock
-        self.results = results
-        self.start_time = start_time
-        self.end_time = end_time
-
-    def run(self):
-        self.crawler.crawl(self.results_lock, self.results, self.start_time, self.end_time)
+def worker(cookies, app_id, operation, start_time, end_time):
+    crawler = Crawler(cookies, app_id, operation)
+    return crawler.crawl(start_time, end_time)
 
 def main():
     load_dotenv()
@@ -82,25 +72,23 @@ def main():
         "sessionid": os.getenv("ES_OPS_SESSIONID"),
         "PRO_cas_principal": os.getenv("ES_OPS_CAS_PRINCIPAL"),
     }
-
-    results_lock = threading.Lock() # 全局锁
-    results = []
-    threads = []
-    thread_count = 24
+    app_id = '100017817'
+    operation = 'endHangEvent'
+    worker_count = 50
     start_time = datetime.datetime(2023, 5, 23)
     end_time = start_time + datetime.timedelta(days=1)
-    delta_seconds = int((end_time - start_time).total_seconds() / thread_count)
+    delta_seconds = int((end_time - start_time).total_seconds() / worker_count)
+ 
+    futures = []
+    with concurrent.futures.ThreadPoolExecutor(max_workers=worker_count) as executor:
+        for i in range(worker_count):
+            current_start_time = start_time + datetime.timedelta(seconds = i * delta_seconds)
+            current_end_time = start_time + datetime.timedelta(seconds = (i + 1) * delta_seconds)
+            futures.append(executor.submit(worker, cookies, app_id, operation, current_start_time, current_end_time))
 
-    for i in range(thread_count):
-        current_start_time = start_time + datetime.timedelta(seconds = i * delta_seconds)
-        current_end_time = start_time + datetime.timedelta(seconds = (i + 1) * delta_seconds)
-        thread = CrawlerThread(results_lock, results, cookies, '100017817', 'endHangEvent', current_start_time, current_end_time)
-        thread.start()
-        threads.append(thread)
-
-    # 等待所有线程完成
-    for thread in threads:
-        thread.join()
+    results = []
+    for future in concurrent.futures.as_completed(futures):
+        results.extend(future.result())
 
     # sort results by timestamp 
     results.sort(key=lambda x: x['timestamp'])

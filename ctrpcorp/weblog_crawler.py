@@ -4,12 +4,12 @@ import datetime as dt
 import time
 
 def create_count_crawler(cookies, app_id, operation):
-    count_query_template = f"""SELECT count(1) as value, (intDiv(toUInt32(timestamp)*1000,10000)) as t 
+    count_query_template = f"""SELECT count(1) as value, (intDiv(toUInt32(timestamp)*1000,1000)) as t 
 FROM log.weblog_all 
 WHERE {__query_condition}
 GROUP BY t ORDER BY t FORMAT JSON
 """
-    return __Crawler(cookies, count_query_template, app_id, operation, __count_result_convert, 10 * 60)
+    return __Crawler(cookies, count_query_template, app_id, operation, __count_result_convert, 3 * 60)
 
 
 def create_detail_crawler(cookies, app_id, operation):
@@ -41,21 +41,27 @@ class __Crawler:
             now_text = dt.datetime.strftime(dt.datetime.now(), '%Y-%m-%d %H:%M:%S')
             current_start_time_text = dt.datetime.strftime(current_start_time, '%Y-%m-%d %H:%M:%S')
             current_end_time_text = dt.datetime.strftime(current_end_time, '%Y-%m-%d %H:%M:%S')
-            print(f"{now_text} -> {current_start_time_text}~{current_end_time_text}")
+            current_time_range_text = f"{current_start_time_text}~{current_end_time_text}"
+            if i == 0:
+                print(f"{now_text} -> {current_time_range_text}")
             current_start_timestamp = int((current_start_time - dt.datetime(1970, 1, 1)).total_seconds())
             current_end_timestamp = int((current_end_time - dt.datetime(1970, 1, 1)).total_seconds())
             query = self.query_template.format(start=current_start_timestamp, end=current_end_timestamp, app_id=self.app_id, operation=self.operation)
 
             for i in range(self.max_retries):
                 try:
+                    if i > 0:
+                        print(f"{dt.datetime.strftime(dt.datetime.now(), '%Y-%m-%d %H:%M:%S')} -> {current_time_range_text}: retying {i} time(s) ...")
                     response = requests.post(self.url, data=query, cookies=self.cookies)
-                    break
+                    if response.status_code == 200:
+                        break
+                    time.sleep(1)    
                 except Exception as e:
                     if i == self.max_retries - 1:
-                        print(f"{dt.datetime.strftime(dt.datetime.now(), '%Y-%m-%d %H:%M:%S')} -> {e}")
+                        print(f"{dt.datetime.strftime(dt.datetime.now(), '%Y-%m-%d %H:%M:%S')} -> {current_time_range_text}: {e}")
                         break
                     else:
-                        time.sleep(2)
+                        time.sleep(1)
                         continue
             
             if response.status_code == 200:
@@ -63,7 +69,7 @@ class __Crawler:
                 for item in response_data['data']:  
                     results.append(self.result_converter(item))
             else:
-                print(f"{dt.datetime.strftime(dt.datetime.now(), '%Y-%m-%d %H:%M:%S')} -> {response}")
+                print(f"{dt.datetime.strftime(dt.datetime.now(), '%Y-%m-%d %H:%M:%S')} -> {current_time_range_text}: {response}")
             time.sleep(0.005)
 
         return results;
@@ -86,6 +92,7 @@ def __count_result_convert(item):
     return {
         'timestamp': item['t'], 
         'value': item['value'],
+        'date_time': dt.datetime.strftime(dt.datetime.fromtimestamp(int(item['t'])), "%Y-%m-%d %H:%M:%S"),
     }
 
 

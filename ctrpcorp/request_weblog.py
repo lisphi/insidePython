@@ -56,10 +56,10 @@ def main():
     cookies = {
         "sessionid": os.getenv("ES_COOKIE_SESSION_ID"),
     }
-    app_id = '100017817'
-    operation = 'endHangEvent'
-    start_time = dt.datetime(2023, 5, 20)
-    end_time = start_time + dt.timedelta(days=8)
+    app_id = '100002548'
+    operation = 'queryEvent'
+    start_time = dt.datetime(2023, 6, 19, 9, 0, 0)
+    end_time = start_time + dt.timedelta(hours=4)
     total_seconds = int((end_time - start_time).total_seconds())
     step_seconds = 20 * 60 #二十分钟一个任务
     count_results = request_count(cookies, app_id, operation, start_time, end_time, total_seconds, step_seconds)

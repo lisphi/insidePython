@@ -3,6 +3,8 @@ import json
 import datetime as dt
 import time
 
+__query_condition = """(timestamp >= toDateTime({start}) AND timestamp <= toDateTime({end})) AND (group = 'soa2.{service_code}') AND (requestPath like '%{operation}%')"""
+
 # SELECT count(1) as __count, count(1) as value, (intDiv(toUInt32(timestamp)*1000,5000)) as t 
 # FROM log.fx_apirouter_access_log_all 
 # WHERE (timestamp >= toDateTime(1688324100) AND timestamp <= toDateTime(1688324700)) AND (requestPath like '%queryCreateSubEvent%') AND (((group='soa2.16566'))) 
@@ -14,21 +16,21 @@ FROM log.fx_apirouter_access_log_all
 WHERE {__query_condition}
 GROUP BY t ORDER BY t FORMAT JSON
 """
-    return __Crawler(cookies, count_query_template, service_code, operation, __count_result_convert, 1 * 60)
+    return __Crawler(cookies, count_query_template, service_code, operation, __count_result_convert, 5 * 60)
 
 
 # SELECT `domain`,`referer`,`requestPath`,`responseStatus`,`rootMessageId`,`timestamp`
 # FROM log.fx_apirouter_access_log_all 
 # WHERE (timestamp >= toDateTime(1688324100) AND timestamp <= toDateTime(1688324700)) AND (requestPath like '%queryCreateSubEvent%') AND (((group='soa2.16566'))) 
-# ORDER BY requestPath asc LIMIT 500 FORMAT JSON
+# ORDER BY timestamp asc LIMIT 500 FORMAT JSON
 
 def create_detail_crawler(cookies, service_code, operation):
-    detail_query_template = f"""SELECT `domain`,`referer`,`requestPath`,`responseStatus`,`rootmessageid`,`timestamp` 
+    detail_query_template = f"""SELECT `domain`,`referer`,`requestPath`,`responseStatus`,`rootMessageId`,`userAgent`,`timestamp` 
 FROM log.fx_apirouter_access_log_all 
 WHERE {__query_condition}
-ORDER BY requestPath desc LIMIT 100 FORMAT JSON    
+ORDER BY timestamp desc LIMIT 500 FORMAT JSON    
 """
-    return __Crawler(cookies, detail_query_template, service_code, operation, __detail_result_convert, 1 * 60)
+    return __Crawler(cookies, detail_query_template, service_code, operation, __detail_result_convert, 5 * 60)
 
 
 class __Crawler:
@@ -129,9 +131,6 @@ class __Crawler:
 
         return results
 
-
-__query_condition = """(timestamp >= toDateTime({start}) AND timestamp <= toDateTime({end})) AND (group = 'soa2.{service_code}') AND (requestPath like '%{operation}%')"""
-
 def __detail_result_convert(data_item):
     local_time =  dt.datetime.strptime(data_item['timestamp'], "%Y-%m-%d %H:%M:%S") + dt.timedelta(hours=8)
     return {
@@ -139,6 +138,7 @@ def __detail_result_convert(data_item):
         'requestPath': data_item['requestPath'], 
         'referer': data_item['referer'], 
         'rootMessageId': data_item['rootMessageId'],
+        'userAgent': data_item['userAgent'],
         'date_time': dt.datetime.strftime(local_time, "%Y-%m-%d %H:%M:%S"),
         'timestamp': int(local_time.timestamp()),
     }
